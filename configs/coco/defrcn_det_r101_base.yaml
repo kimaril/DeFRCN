@@ -1,0 +1,28 @@
+_BASE_: "../Base-RCNN.yaml" 
+MODEL:
+  WEIGHTS: "data/ImageNetPretrained/torchvision/resnet101-5d3b4d8f.pth"
+  MASK_ON: False
+  BACKBONE:
+    FREEZE: False
+  RESNETS:
+    DEPTH: 50
+  RPN:
+    ENABLE_DECOUPLE: True
+    BACKWARD_SCALE: 0.0
+  ROI_HEADS:
+    NUM_CLASSES: 60
+    ENABLE_DECOUPLE: True
+    BACKWARD_SCALE: 0.75
+    FREEZE_FEAT: False
+    CLS_DROPOUT: False 
+DATASETS:
+  TRAIN: ('coco14_trainval_base',)
+  TEST: ('coco14_test_base',) 
+SOLVER:
+  IMS_PER_BATCH: 2
+  BASE_LR: 0.00025
+  WARMUP_ITERS: 10
+  STEPS: (85000, 100000)
+  MAX_ITER: 110000
+  CHECKPOINT_PERIOD: 2000 
+OUTPUT_DIR: "checkpoints/coco/base/"

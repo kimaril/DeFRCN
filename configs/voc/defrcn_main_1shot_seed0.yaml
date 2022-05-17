@@ -1,0 +1,36 @@
+_BASE_: "../Base-RCNN.yaml"
+MODEL:
+  WEIGHTS: "checkpoints/voc/1/defrcn_fsod_r101_novel2/fsrw-like/10shot_seed0_repeat2/model_0007999.pth"
+  MASK_ON: False
+  BACKBONE:
+    FREEZE: False
+  RESNETS:
+    DEPTH: 101
+  RPN:
+    ENABLE_DECOUPLE: True
+    BACKWARD_SCALE: 0.0
+    FREEZE: False
+  ROI_HEADS:
+    ENABLE_DECOUPLE: True
+    BACKWARD_SCALE: 0.001
+    NUM_CLASSES: 4
+    FREEZE_FEAT: False
+    CLS_DROPOUT: False
+INPUT:
+  MIN_SIZE_TRAIN: (480, 512, 544, 576, 608, 640, 672, 704, 736, 768, 800)
+  MIN_SIZE_TEST: 800
+DATASETS:
+  TRAIN: ("main_2022_train_10shot", )
+  TEST: ('main_2022_test',)
+SOLVER:
+  IMS_PER_BATCH: 3
+  BASE_LR: 0.025
+  STEPS: (640, )
+  MAX_ITER: 8000
+  CHECKPOINT_PERIOD: 100
+  WARMUP_ITERS: 10
+  WEIGHT_DECAY: 0.0005
+TEST:
+  PCB_ENABLE: True
+  PCB_MODELPATH: "/home/kim/juche/projects/DeFRCN/data/ImageNetPretrained/torchvision/resnet101-5d3b4d8f.pth"
+OUTPUT_DIR: "checkpoints/voc/1/defrcn_fsod_r101_novel2/fsrw-like/10shot_seed0_repeat3/"
