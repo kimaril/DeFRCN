@@ -1,0 +1,10 @@
+/home/kim/juche/projects/DeFRCN/datasets/main/JPEGImages/02779.jpg
+/home/kim/juche/projects/DeFRCN/datasets/main/JPEGImages/00103.jpg
+/home/kim/juche/projects/DeFRCN/datasets/main/JPEGImages/06349.jpg
+/home/kim/juche/projects/DeFRCN/datasets/main/JPEGImages/06374.jpg
+/home/kim/juche/projects/DeFRCN/datasets/main/JPEGImages/00167.jpg
+/home/kim/juche/projects/DeFRCN/datasets/main/JPEGImages/06206.jpg
+/home/kim/juche/projects/DeFRCN/datasets/main/JPEGImages/03603.jpg
+/home/kim/juche/projects/DeFRCN/datasets/main/JPEGImages/06324.jpg
+/home/kim/juche/projects/DeFRCN/datasets/main/JPEGImages/02410.jpg
+/home/kim/juche/projects/DeFRCN/datasets/main/JPEGImages/02958.jpg

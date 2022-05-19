@@ -15,7 +15,6 @@ import time
 import timm
 from descriptor_net import ISCNet
 import torch.nn as nn
-from desciptor_engine import extract
 from descriptor_dataset import opencv2pil
 from tqdm import tqdm 
 import pandas as pd
@@ -25,7 +24,10 @@ to_pil = T.ToPILImage()
 to_tensor = T.ToTensor()
 cos = nn.CosineSimilarity(dim=-1, eps=1e-6)
 
-with open("categories/categories_data.4_classes.json", mode="r", encoding="utf-8") as f:
+# with open("categories/categories_data.4_classes.json", mode="r", encoding="utf-8") as f:
+#     categories_data = json.loads(f.read())
+
+with open("./panoptic_coco_categories.json", mode="r", encoding="utf-8") as f:
     categories_data = json.loads(f.read())
 
 preprocesses = [
@@ -115,7 +117,7 @@ class DetDescriptor:
         return boxes, labels, scores, str_labels, colors, imtensor
 
 
-    def describe_image_list(self, files_list_txt, out_dir="results/detection"):
+    def describe_image_list(self, files_list_txt, out_dir="results/detection", draw=True):
         timestr = time.strftime("%Y%m%d-%H%M")
         if not os.path.exists(f"./{out_dir}_{timestr}/"):
             os.makedirs(f"./{out_dir}_{timestr}/", exist_ok=True)
@@ -124,6 +126,8 @@ class DetDescriptor:
             files_list = [_.strip() for _ in f.readlines()]
 
         data = []
+
+        print(files_list)
         
         for image_fn in tqdm(files_list):
             boxes, labels, scores, str_labels, colors, imtensor = self.detect(image_fn)
@@ -135,14 +139,35 @@ class DetDescriptor:
                     scores=scores,
                     )
                     )
+            if draw:
+                im_fn = os.path.split(image_fn)[-1]
+                print("DRAWING: " + im_fn)
+                # print()
+                image_w_boxes = to_pil(
+                draw_bounding_boxes(
+                    image=imtensor, 
+                    boxes=boxes, 
+                    labels=str_labels, 
+                    colors=colors, 
+                    fill=False, 
+                    width=3,
+                    font="/usr/share/fonts/truetype/freefont/FreeMonoBold.ttf",
+                    font_size=20
+                ))
+                image_w_boxes.save(f"./{out_dir}_{timestr}/{im_fn}")
+
         json_path = f"./{out_dir}_{timestr}/result.json"
         with open(json_path, mode="w", encoding="utf-8") as f:
             json.dump(data, f)
-        #TODO переписать с использованием дескриптора из класса
-        if self.descriptor:
-            extract(json_path=json_path, data_dir=os.path.abspath("./"))
-            print("Saved results to: {}".format(os.path.splitext(json_path)[0] + ".embeddings" + ".json"))
-            return os.path.splitext(json_path)[0] + ".embeddings" + ".json"
+
+
+        # #TODO переписать с использованием дескриптора из класса
+        # if self.descriptor_weights:
+        #     from desciptor_engine import extract
+        #     extract(json_path=json_path, data_dir=os.path.abspath("./"))
+        #     print("Saved results to: {}".format(os.path.splitext(json_path)[0] + ".embeddings" + ".json"))
+        #     return os.path.splitext(json_path)[0] + ".embeddings" + ".json"
+        print("Saved results to: {}".format(os.path.splitext(json_path)[0] + ".json"))
         return f"./{out_dir}_{timestr}/result.json"
 
     def describe_query_image(self, image_fn, bbox=None):
@@ -246,24 +271,24 @@ def start_inference(config_file, opt_configs, files_list, output_dir="results/de
         json.dump(data, f)
     return os.path.abspath(f"./{output_dir}_{timestr}/result.json")
         
-if __name__=='__main__':
-    parser = default_argument_parser()
+# if __name__=='__main__':
+#     parser = default_argument_parser()
 
-    parser.add_argument('files_listing', metavar='FILES_LIST_TXT', type=str,
-                        help='path to txt list of image files for inference')
+#     parser.add_argument('files_listing', metavar='FILES_LIST_TXT', type=str,
+#                         help='path to txt list of image files for inference')
 
-    parser.add_argument('query_image', metavar='QUERY_IMG', type=str,
-                        help='path to query image')
+#     parser.add_argument('query_image', metavar='QUERY_IMG', type=str,
+#                         help='path to query image')
     
-    parser.add_argument('desc_path', metavar='DESC_PATH', type=str,
-                        help='path to descriptor weights file')
+#     parser.add_argument('desc_path', metavar='DESC_PATH', type=str,
+#                         help='path to descriptor weights file')
 
-    parser.add_argument('--image-dir', type=str, default='results/detection',
-                        help='directory to store images with predictions')
+#     parser.add_argument('--image-dir', type=str, default='results/detection',
+#                         help='directory to store images with predictions')
 
-    #TODO: add thresholds to parser
-    args = parser.parse_args()
+#     #TODO: add thresholds to parser
+#     args = parser.parse_args()
     
-    ddescriptor = DetDescriptor(args.config_file, args.desc_path, 0.5, 0.7)
-    ddescriptor.compare_embeddings(args.files_listing, args.query_image)
+#     ddescriptor = DetDescriptor(args.config_file, args.desc_path, 0.5, 0.7)
+#     ddescriptor.compare_embeddings(args.files_listing, args.query_image)
     
