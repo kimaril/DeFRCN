@@ -18,6 +18,9 @@ import torch.nn as nn
 from desciptor_engine import extract
 from descriptor_dataset import opencv2pil
 from tqdm import tqdm 
+import pandas as pd
+
+
 to_pil = T.ToPILImage()
 to_tensor = T.ToTensor()
 cos = nn.CosineSimilarity(dim=-1, eps=1e-6)
@@ -136,11 +139,11 @@ class DetDescriptor:
 
 
     def describe_query_image(self, image_fn, bbox=None):
-        image = Image.open(image_fn)
+        image = Image.open(image_fn).convert("RGB")
         
         # TODO заменить на annot_fn, если известен формат файла аннотации
         if bbox: # pascal voc format
-            image = np.array(image.convert("RGB"))
+            image = np.array(image)
             h, w, c = image.shape
             x1 = max(round(bbox[0]), 0)
             y1 = max(round(bbox[1]), 0)
@@ -164,20 +167,36 @@ class DetDescriptor:
         print(f.shape)
         return f.astype(np.float32)
 
-    def compare_embeddings(self, files_list_txt, image_fn, bbox=None):
-        json_path = self.describe_image_list(files_list_txt)
+    def compare_embeddings(self, json_path, image_fn, bbox=None):
         query_image_embedding = self.describe_query_image(image_fn, bbox)
         with open(json_path, "r", encoding="utf-8") as f:
-            data_image_list = json.load(f)
-        for d in data_image_list:
-            d["sim"] = cos(torch.as_tensor(d["embedding"]), torch.as_tensor(query_image_embedding)).item()
+            # data_image_list = json.load(f)
+            data_image_list = pd.read_json(f)
+        sims = []
+        for i, d in data_image_list.iterrows():
+            sims.append(cos(torch.as_tensor(d["embedding"]), torch.as_tensor(query_image_embedding)).item())
+        data_image_list["sim"] = sims
      
-        with open(os.path.splitext(json_path)[0] + ".cosine" + ".json", mode="w", encoding="utf-8") as f:
-            json.dump(data_image_list, f)
+        # with open(os.path.splitext(json_path)[0] + ".cosine" + ".json", mode="w", encoding="utf-8") as f:
+            # json.dump(data_image_list, f)
+        data_image_list.to_json(os.path.splitext(json_path)[0] + ".cosine" + ".json", force_ascii=False)
 
         print("Saved cosine similarities to {}".format(os.path.splitext(json_path)[0] + ".cosine" + ".json"))
         return os.path.splitext(json_path)[0] + ".cosine" + ".json"
 
+    def full_cycle(self, files_list_txt, image_fn, bbox=None):
+        json_path = self.describe_image_list(files_list_txt)
+        res = self.compare_embeddings(json_path, image_fn, bbox=None)
+        return res
+
+    def get_top_for_image(self, json_path, image_fn, bbox=None, topn=10):
+        cosine_json_path = self.compare_embeddings(json_path=json_path, image_fn=image_fn, bbox=bbox)
+        #TODO: убрать pandas, заменить json+sorted
+        df = pd.read_json(cosine_json_path)
+        print(df.head())
+        df["abssim"] = df["sim"].apply(abs)
+        top = df.sort_values(by="abssim", ascending=False)[:topn].copy(deep=True)
+        return top
 
 def start_inference(config_file, opt_configs, files_list, output_dir="results/detection", threshold=0.5):
     timestr = time.strftime("%Y%m%d-%H%M")
