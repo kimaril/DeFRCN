@@ -84,8 +84,8 @@ def defrcn2torchvision(prediction, threshold, categories_data):
     return boxes[:len(str_labels)], labels[:len(str_labels)], scores[:len(str_labels)], str_labels, colors
 
 class DetDescriptor:
-    def __init__(self, det_config_path, desc_path, detection_th=0.5, bbox_th=0.7):
-        assert (det_config_path!=None and desc_path!=None)
+    def __init__(self, det_config_path=None, desc_path=None, detection_th=0.5, bbox_th=0.7):
+        assert (det_config_path!=None or desc_path!=None)
         self.detector, self.descriptor_weights = None, None
         if det_config_path:
             self.detector = configure_model(config_file=det_config_path, opt_configs=[])
