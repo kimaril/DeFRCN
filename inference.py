@@ -116,7 +116,6 @@ class DetDescriptor:
 
 
     def describe_image_list(self, files_list_txt, out_dir="results/detection"):
-        assert self.descriptor!=None
         timestr = time.strftime("%Y%m%d-%H%M")
         if not os.path.exists(f"./{out_dir}_{timestr}/"):
             os.makedirs(f"./{out_dir}_{timestr}/", exist_ok=True)
@@ -140,10 +139,11 @@ class DetDescriptor:
         with open(json_path, mode="w", encoding="utf-8") as f:
             json.dump(data, f)
         #TODO переписать с использованием дескриптора из класса
-        extract(json_path=json_path, data_dir=os.path.abspath("./"))
-        print("Saved results to: {}".format(os.path.splitext(json_path)[0] + ".embeddings" + ".json"))
-        return os.path.splitext(json_path)[0] + ".embeddings" + ".json"
-
+        if self.descriptor:
+            extract(json_path=json_path, data_dir=os.path.abspath("./"))
+            print("Saved results to: {}".format(os.path.splitext(json_path)[0] + ".embeddings" + ".json"))
+            return os.path.splitext(json_path)[0] + ".embeddings" + ".json"
+        return f"./{out_dir}_{timestr}/result.json"
 
     def describe_query_image(self, image_fn, bbox=None):
         assert self.descriptor!=None
