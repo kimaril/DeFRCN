@@ -84,10 +84,14 @@ def defrcn2torchvision(prediction, threshold, categories_data):
     return boxes[:len(str_labels)], labels[:len(str_labels)], scores[:len(str_labels)], str_labels, colors
 
 class DetDescriptor:
-    def __init__(self, det_config_path, desc_path, detection_th, bbox_th):
-        self.detector = configure_model(config_file=det_config_path, opt_configs=[])
-        self.descriptor_weights = desc_path
-        self.load_descriptor()
+    def __init__(self, det_config_path, desc_path, detection_th=0.5, bbox_th=0.7):
+        assert (det_config_path!=None and desc_path!=None)
+        self.detector, self.descriptor_weights = None, None
+        if det_config_path:
+            self.detector = configure_model(config_file=det_config_path, opt_configs=[])
+        if desc_path:
+            self.descriptor_weights = desc_path
+            self.load_descriptor()
         self.detection_th = detection_th
         self.collision_th = bbox_th
         self.timestr =  time.strftime("%Y%m%d-%H%M")
@@ -102,6 +106,7 @@ class DetDescriptor:
 
 
     def detect(self, image_fn):
+        assert self.detector!=None
         image = np.array(Image.open(image_fn).convert("RGB"))
         prediction = self.detector(image)
         prediction = decode_defrcn(prediction, collision_threshold=self.collision_th, box_format="voc")
@@ -111,6 +116,7 @@ class DetDescriptor:
 
 
     def describe_image_list(self, files_list_txt, out_dir="results/detection"):
+        assert self.descriptor!=None
         timestr = time.strftime("%Y%m%d-%H%M")
         if not os.path.exists(f"./{out_dir}_{timestr}/"):
             os.makedirs(f"./{out_dir}_{timestr}/", exist_ok=True)
@@ -133,15 +139,17 @@ class DetDescriptor:
         json_path = f"./{out_dir}_{timestr}/result.json"
         with open(json_path, mode="w", encoding="utf-8") as f:
             json.dump(data, f)
+        #TODO переписать с использованием дескриптора из класса
         extract(json_path=json_path, data_dir=os.path.abspath("./"))
         print("Saved results to: {}".format(os.path.splitext(json_path)[0] + ".embeddings" + ".json"))
         return os.path.splitext(json_path)[0] + ".embeddings" + ".json"
 
 
     def describe_query_image(self, image_fn, bbox=None):
+        assert self.descriptor!=None
         image = Image.open(image_fn).convert("RGB")
         
-        # TODO заменить на annot_fn, если известен формат файла аннотации
+        # TODO заменить bbox на annot_fn, если известен формат файла аннотации, сделать возможность отрисовки через сервис streamlit 
         if bbox: # pascal voc format
             image = np.array(image)
             h, w, c = image.shape
