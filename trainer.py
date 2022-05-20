@@ -39,16 +39,17 @@ def setup(args):
     cfg.merge_from_file(args.config_file)
     if args.opts:
         cfg.merge_from_list(args.opts)
-    num_epochs = 800
+    num_epochs = 25
     one_epoch = (123287 + 40504) / 2
     max_iter = int(one_epoch * num_epochs)
     cfg.MAX_ITER = max_iter
     cfg.CHECKPOINT_PERIOD = one_epoch * 50
+    # from https://github.com/facebookresearch/detectron2/issues/1128
     num_gpu = 1
     bs = (num_gpu * 2)
-    # from https://github.com/facebookresearch/detectron2/issues/1128
-    cfg.SOLVER.IMS_PER_BATCH = 2
-    cfg.SOLVER.BASE_LR = 0.002 * bs / 16 # pick a good LR
+    cfg.SOLVER.IMS_PER_BATCH = bs
+    # cfg.SOLVER.BASE_LR = 0.002 * bs / 16 # pick a good LR
+    cfg.SOLVER.BASE_LR = 0.000015625
     cfg.SEED = 9235166 
     print(cfg.SOLVER.BASE_LR)
     cfg.freeze()
