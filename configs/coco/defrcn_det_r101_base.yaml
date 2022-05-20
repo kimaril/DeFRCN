@@ -9,28 +9,24 @@ MODEL:
   RPN:
     ENABLE_DECOUPLE: True
     BACKWARD_SCALE: 0.0
-    FREEZE: True
   ROI_HEADS:
     NUM_CLASSES: 60
     ENABLE_DECOUPLE: True
     BACKWARD_SCALE: 0.75
     FREEZE_FEAT: False
     CLS_DROPOUT: False 
-INPUT:
-  MIN_SIZE_TRAIN: (480, 512, 544, 576, 608, 640, 672, 704, 736, 768, 800)
-  MIN_SIZE_TEST: 800
 DATASETS:
   TRAIN: ('coco14_trainval_base',)
   TEST: ('coco14_test_base',) 
 SOLVER:
-  IMS_PER_BATCH: 1
-  BASE_LR: 0.025
+  IMS_PER_BATCH: 2
+  BASE_LR: 0.000025
   WARMUP_ITERS: 10
-  STEPS: (640, )
-  # STEPS: (85000, 100000)
+  STEPS: (85000, 100000)
   MAX_ITER: 110000
   CHECKPOINT_PERIOD: 2000 
+OUTPUT_DIR: "checkpoints/coco/base/"
 TEST:
   PCB_ENABLE: True
-  PCB_MODELPATH: "/home/kim/juche/projects/DeFRCN/data/ImageNetPretrained/torchvision/resnet101-5d3b4d8f.pth"
+  PCB_MODELPATH: "data/ImageNetPretrained/torchvision/resnet101-5d3b4d8f.pth"
 OUTPUT_DIR: "checkpoints/coco/base/"
